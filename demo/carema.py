@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import time
+from collections import Counter, deque
 
 import cv2
 import numpy as np
@@ -40,12 +41,14 @@ def preprocess_and_predict(model, model_type, roi):
     if model_type == 'ml':
         features = preprocess_flatten_image(roi).reshape(1, -1)
         prediction = model.predict(features)[0]
-        return int(prediction)
+        return int(prediction), 1.0
 
     if model_type == 'tf':
         features = np.expand_dims(preprocess_mobilenet_image(roi), axis=0)
-        prediction_probs = model.predict(features, verbose=0)
-        return int(np.argmax(prediction_probs, axis=1)[0])
+        prediction_probs = model.predict(features, verbose=0)[0]
+        prediction = int(np.argmax(prediction_probs))
+        confidence = float(np.max(prediction_probs))
+        return prediction, confidence
 
     if model_type == 'torch':
         import torch
@@ -54,8 +57,9 @@ def preprocess_and_predict(model, model_type, roi):
         tensor_features = torch.tensor(features, dtype=torch.float32)
         with torch.no_grad():
             outputs = model(tensor_features)
-            _, predicted = torch.max(outputs, 1)
-        return int(predicted.item())
+            probabilities = torch.softmax(outputs, dim=1)
+            confidence, predicted = torch.max(probabilities, 1)
+        return int(predicted.item()), float(confidence.item())
 
     raise ValueError(f'❌ 未知的模型類型: {model_type}')
 
@@ -87,6 +91,9 @@ def main():
     prediction_interval = 3
     frame_count = 0
     result_text = 'Waiting'
+    confidence_text = 'N/A'
+    confidence_threshold = 0.75 if model_type == 'tf' else 0.0
+    prediction_history = deque(maxlen=5)
 
     print("🎥 啟動智慧型攝影機... (按下 'q' 離開)")
 
@@ -109,8 +116,15 @@ def main():
 
         try:
             if frame_count % prediction_interval == 0:
-                prediction = preprocess_and_predict(model, model_type, roi)
-                result_text = labels.get(prediction, 'Unknown')
+                prediction, confidence = preprocess_and_predict(model, model_type, roi)
+                confidence_text = f'{confidence:.2f}'
+
+                if confidence >= confidence_threshold:
+                    prediction_history.append(prediction)
+                    stable_prediction = Counter(prediction_history).most_common(1)[0][0]
+                    result_text = labels.get(stable_prediction, 'Unknown')
+                elif model_type == 'tf':
+                    result_text = 'Uncertain'
         except Exception as error:
             result_text = 'Error'
             print(f'⚠️ 預測時發生錯誤: {error}')
@@ -122,8 +136,9 @@ def main():
         frame_count += 1
 
         cv2.putText(frame, f'Prediction: {result_text}', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
-        cv2.putText(frame, f'FPS: {fps:.1f}', (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-        cv2.putText(frame, f'Type: {model_type.upper()}', (10, 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+        cv2.putText(frame, f'Confidence: {confidence_text}', (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(frame, f'FPS: {fps:.1f}', (10, 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        cv2.putText(frame, f'Type: {model_type.upper()}', (10, 170), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
         cv2.imshow('Smart Camera Inference', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
