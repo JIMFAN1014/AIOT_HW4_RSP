@@ -1,0 +1,11 @@
+# Antigravity / AI Assistant Rules
+
+Always adhere to the following strict instructions for this project:
+
+1. **Maintain Conversation Log**:
+   - Every time a conversation turn is completed and significant progress, analysis, or coding is done, you MUST update the `聊天紀錄.md` file in the root directory (`c:\Users\user\Downloads\RSP_demo\聊天紀錄.md`).
+   - Append the latest discussion summary, code changes, problem analysis, and decisions made.
+   - Use clear headings and bullet points. Format the text in Traditional Chinese to match the project's language.
+
+2. **No Prompting Needed**: 
+   - The user does not need to remind you to do this. Consider this an active, passive skill that triggers at the end of meaningful interactions.
