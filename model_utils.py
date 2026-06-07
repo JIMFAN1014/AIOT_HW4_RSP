@@ -1,9 +1,6 @@
 import os
 import cv2
 import numpy as np
-from skimage.feature import hog
-from sklearn.metrics import accuracy_score, classification_report
-from tensorflow.keras.applications.efficientnet import preprocess_input as efficientnet_preprocess_input
 
 LABEL_MAP = {'rock': 0, 'paper': 1, 'scissors': 2}
 LABEL_NAMES = ['Rock', 'Paper', 'Scissors']
@@ -90,6 +87,7 @@ def preprocess_mobilenet_image(image, image_size=MOBILENET_IMAGE_SIZE):
 
 
 def preprocess_efficientnet_image(image, image_size=EFFICIENTNET_IMAGE_SIZE):
+    from tensorflow.keras.applications.efficientnet import preprocess_input as efficientnet_preprocess_input
     resized = cv2.resize(image, image_size)
     rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
     return efficientnet_preprocess_input(rgb.astype(np.float32))
@@ -106,6 +104,7 @@ class HOGFeatureExtractor:
         return self
 
     def transform(self, X):
+        from skimage.feature import hog
         features = []
         for image in X:
             processed = preprocess_ml_image(image, image_size=self.image_size)
@@ -146,6 +145,7 @@ def load_efficientnet_dataset(folder_path, image_size=EFFICIENTNET_IMAGE_SIZE):
 
 
 def print_metrics(y_true, y_pred):
+    from sklearn.metrics import accuracy_score, classification_report
     accuracy = accuracy_score(y_true, y_pred)
     print(f"Accuracy: {accuracy * 100:.2f}%\n")
     print(classification_report(y_true, y_pred, labels=list(range(len(LABEL_NAMES))), target_names=LABEL_NAMES, zero_division=0))
