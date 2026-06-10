@@ -267,11 +267,11 @@ RSP_demo/
 | Random Forest | 傳統 ML | 56.45% |
 | Small CNN | 深度學習 | 83.33% |
 | MobileNetV2 | 深度學習 | 93.82% |
-| EfficientNetB0 | 深度學習 | 待訓練 / 待驗證 |
+| EfficientNetB0 | 深度學習 | 87.37% |
 
 目前最值得作為報告主比較的兩個模型：
-- **Small CNN**
-- **MobileNetV2**
+- **Small CNN**（83.33%）
+- **EfficientNetB0**（87.37%，實機 Demo 主力）
 
 但其他模型仍保留，作為完整實驗歷程與比較依據。
 
@@ -523,13 +523,33 @@ uv run python demo/carema.py -m demo/rps_svm_model.pkl
 
 ---
 
-# 12. 備註
+# 12. 作業繳交項目
+
+## Part 1 — 實機執行截圖
+
+截圖存放於 `part_1/` 資料夾：
+
+- `part_1/test.py.jpg`：於 Raspberry Pi 4 執行 `python3 test.py` 的結果截圖
+- `part_1/carema.py.jpg`：於 Raspberry Pi 4 執行 `python3 carema.py` 的攝影機推論截圖
+
+---
+
+## Part 2 — Demo 展示影片
+
+**YouTube 連結**：https://youtu.be/hNdXaP3jzTQ
+
+影片包含 10 次手勢辨識（Rock × 3、Paper × 3、Scissors × 3、Error × 1），使用模型為 **EfficientNetB0**，實測 FPS 約 22.5。
+
+---
+
+## Part 3 — 報告
+
+完整報告請見：[報告.md](報告.md)
+
+---
+
+# 13. 備註
 
 - 舊版 README 已備份為：`README_old.md`
 - 專案中的對話與開發歷程記錄在：`聊天紀錄.md`
-- 後續你完成 Raspberry Pi 實測與 Demo 後，可再把：
-  - FPS
-  - 啟動時間
-  - 實測辨識表現
-  - 錄影結果
-  提供回來，再進一步整理成正式報告內容。
+- 完整報告內容請見：`報告.md`
